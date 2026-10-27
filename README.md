@@ -1,13 +1,17 @@
 # Appointment Scheduler
 
-A doctor appointment scheduling system for patients and doctors. Built with NestJS, PostgreSQL, and Next.js.
+A doctor appointment booking application for patients and doctors. Doctors publish their availability, patients book a slot, and the booking appears on the doctor's dashboard.
 
-> Status: initial setup. The backend module structure and a Hello World frontend are in place.
+> Status: in development. Authentication and role-based dashboards are in place. Doctor, availability, and appointment features are next.
 
 ## Tech Stack
 
-- **Backend:** Node.js, TypeScript, NestJS, PostgreSQL
-- **Frontend:** React, Next.js, TypeScript
+- **Framework:** Next.js (App Router), TypeScript
+- **Backend:** Next.js Server Actions, Zod for validation
+- **UI:** Tailwind CSS, shadcn/ui
+- **Database:** PostgreSQL on Neon, Drizzle ORM
+- **Authentication:** Better Auth (email and password, role-based)
+- **Deployment:** Vercel
 
 ## Modules
 
@@ -21,47 +25,80 @@ A doctor appointment scheduling system for patients and doctors. Built with Nest
 
 ```
 appointment-scheduler/
-├── backend/    # NestJS API (port 3000)
-└── frontend/   # Next.js app (port 3030)
+├── docs/
+│   └── schedule-er-diagram.dbml     # ER diagram (view on dbdiagram.io)
+└── scheduler/                       # Next.js app
+    ├── src/
+    │   ├── actions/                 # Server Actions (auth, doctors, availability, appointments)
+    │   ├── app/
+    │   │   ├── api/auth/[...all]/   # Better Auth route handler
+    │   │   ├── signin/  signup/     # Auth pages
+    │   │   ├── dashboard/           # Redirects each role to its dashboard
+    │   │   ├── doctor/              # Doctor pages
+    │   │   └── patient/             # Patient pages
+    │   ├── components/ui/           # shadcn/ui components
+    │   ├── db/                      # Drizzle connection and schema
+    │   └── lib/                     # Auth config and session helpers
+    └── drizzle.config.ts
 ```
+
+## Database
+
+Tables: `users`, `patients`, `doctors`, `availability`, `appointments`.
+
+- `users` to `patients`: 1:1
+- `users` to `doctors`: 1:1
+- `doctors` to `availability`: 1:N
+- `patients` to `appointments`: 1:N
+- `doctors` to `appointments`: 1:N
+- `availability` to `appointments`: 1:1 (a slot can be booked only once)
+
+Better Auth also manages its own `session`, `account`, and `verification` tables.
 
 ## Prerequisites
 
 - Node.js 22.22.3+ or 24.x LTS
 - npm
-- PostgreSQL (needed once the database is connected)
+- A Neon PostgreSQL database
 
 ## Getting Started
 
-### Backend
-
 ```bash
-cd backend
+cd scheduler
 npm install
-npm run start:dev
 ```
 
-Runs at http://localhost:3000
+Create `scheduler/.env.local`:
 
-### Frontend
-
-```bash
-cd frontend
-npm install
-npm run dev -- -p 3030
+```
+DATABASE_URL=postgresql://user:password@host/db?sslmode=require
+BETTER_AUTH_SECRET=your-long-random-string
+BETTER_AUTH_URL=http://localhost:3000
 ```
 
-Runs at http://localhost:3030
+Create the tables and start the app:
 
-## Database
+```bash
+npx drizzle-kit push
+npm run dev
+```
 
-The ER diagram is in the DBML format (tables: `users`, `patients`, `doctors`, `availability`, `appointments`). Paste the DBML into [dbdiagram.io](https://dbdiagram.io) to view it.
+Open http://localhost:3000
+
+## Deployment
+
+Deployed on Vercel with **Root Directory** set to `scheduler`. Set the same three environment variables in Vercel, with `BETTER_AUTH_URL` pointing to the live URL.
+
+Live URL: _to be added_
 
 ## Roadmap
 
-- [x] Project setup (NestJS backend, Next.js frontend)
+- [x] Project setup (Next.js, Drizzle, Neon, shadcn/ui)
 - [x] ER diagram
-- [ ] Connect PostgreSQL
-- [ ] Authentication (signup, signin, signout)
-- [ ] Doctor availability
-- [ ] Appointment booking
+- [x] Authentication (signup, signin, signout) with role-based dashboards
+- [ ] Doctor profile
+- [ ] Doctor availability slots
+- [ ] Patient booking
+- [ ] Appointments on the doctor dashboard
+- [ ] Cancel and complete appointments
+- [ ] Deployment
