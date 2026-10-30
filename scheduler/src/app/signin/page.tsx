@@ -13,9 +13,9 @@ export default function SignInPage() {
 
   return (
     <main className="flex min-h-screen items-center justify-center p-4">
-      <Card className="w-full max-w-sm">
+      <Card className="w-full max-w-sm bold">
         <CardHeader>
-          <CardTitle>Sign in</CardTitle>
+          <CardTitle className="text-lg font-bold">Login</CardTitle>
         </CardHeader>
         <CardContent>
           <form action={action} className="space-y-4">

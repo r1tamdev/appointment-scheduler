@@ -15,7 +15,7 @@ export default function SignUpPage() {
     <main className="flex min-h-screen items-center justify-center p-4">
       <Card className="w-full max-w-sm">
         <CardHeader>
-          <CardTitle>Create account</CardTitle>
+          <CardTitle className="text-lg font-bold">Create account</CardTitle>
         </CardHeader>
         <CardContent>
           <form action={action} className="space-y-4">
@@ -31,6 +31,10 @@ export default function SignUpPage() {
               <Label htmlFor="password">Password</Label>
               <Input id="password" name="password" type="password" required />
             </div>
+            {state?.error && <p className="text-sm text-red-600">{state.error}</p>}
+            <Button type="submit" className="w-full" disabled={pending}>
+              {pending ? "Creating..." : "Sign up"}
+            </Button>
             <div className="space-y-2">
               <Label htmlFor="role">I am a</Label>
               <select
@@ -43,10 +47,6 @@ export default function SignUpPage() {
                 <option value="DOCTOR">Doctor</option>
               </select>
             </div>
-            {state?.error && <p className="text-sm text-red-600">{state.error}</p>}
-            <Button type="submit" className="w-full" disabled={pending}>
-              {pending ? "Creating..." : "Sign up"}
-            </Button>
             <p className="text-center text-sm">
               Already have an account? <Link href="/signin" className="underline">Sign in</Link>
             </p>
