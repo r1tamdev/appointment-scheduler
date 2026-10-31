@@ -15,7 +15,7 @@ export default function SignUpPage() {
     <main className="flex min-h-screen items-center justify-center p-4">
       <Card className="w-full max-w-sm">
         <CardHeader>
-          <CardTitle className="text-lg font-bold">Create account</CardTitle>
+          <CardTitle className="text-lg font-bold">Create an account</CardTitle>
         </CardHeader>
         <CardContent>
           <form action={action} className="space-y-4">
@@ -30,6 +30,10 @@ export default function SignUpPage() {
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
               <Input id="password" name="password" type="password" required />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="mobile">Mobile Number (optional)</Label>
+              <Input id="mobile" name="mobile" type="tel" />
             </div>
             {state?.error && <p className="text-sm text-red-600">{state.error}</p>}
             <Button type="submit" className="w-full" disabled={pending}>

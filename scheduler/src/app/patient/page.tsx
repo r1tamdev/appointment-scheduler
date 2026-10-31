@@ -6,7 +6,6 @@ import { cancelAppointmentAction } from "@/actions/appointments";
 import { StatusBadge } from "@/components/status-badge";
 import { Button } from "@/components/ui/button";
 import { formatSlotDate, formatTime } from "@/lib/format";
-import { cn } from "@/lib/utils";
 
 export default async function PatientDashboard() {
   const session = await requireRole("PATIENT");
@@ -49,10 +48,19 @@ export default async function PatientDashboard() {
                   {formatSlotDate(r.slotDate)} · {formatTime(r.startTime)} – {formatTime(r.endTime)}
                 </p>
                 {r.reason && <p className="text-sm text-muted-foreground">Reason: {r.reason}</p>}
-                <form action={cancelAppointmentAction}>
-                  <input type="hidden" name="appointmentId" value={r.appointmentId} />
-                  <Button type="submit" size="sm" variant="outline">Cancel appointment</Button>
-                </form>
+                <div className="flex gap-2">
+  <Button
+    size="sm"
+    render={<Link href={`/patient/appointments/${r.appointmentId}/reschedule`} />}
+    nativeButton={false}
+  >
+    Reschedule
+  </Button>
+  <form action={cancelAppointmentAction}>
+    <input type="hidden" name="appointmentId" value={r.appointmentId} />
+    <Button type="submit" size="sm" variant="outline">Cancel appointment</Button>
+  </form>
+</div>
               </div>
             ))}
           </div>

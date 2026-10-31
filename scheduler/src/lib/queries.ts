@@ -42,6 +42,26 @@ export async function getPatientAppointments(patientId: number) {
     .orderBy(asc(availability.slotDate), asc(availability.startTime));
 }
 
+export async function getPatientAppointment(appointmentId: number, userId: string) {
+  const [row] = await db
+    .select({
+      appointmentId: appointments.appointmentId,
+      status: appointments.status,
+      doctorId: appointments.doctorId,
+      slotDate: availability.slotDate,
+      startTime: availability.startTime,
+      endTime: availability.endTime,
+      doctorName: user.name,
+    })
+    .from(appointments)
+    .innerJoin(patients, eq(appointments.patientId, patients.patientId))
+    .innerJoin(availability, eq(appointments.availabilityId, availability.availabilityId))
+    .innerJoin(doctors, eq(appointments.doctorId, doctors.doctorId))
+    .innerJoin(user, eq(doctors.userId, user.id))
+    .where(and(eq(appointments.appointmentId, appointmentId), eq(patients.userId, userId)));
+  return row;
+}
+
 export async function listDoctors(specialization?: string) {
   const conditions = [eq(doctors.isApproved, true), isNotNull(doctors.specialization)];
   if (specialization) conditions.push(ilike(doctors.specialization, `%${specialization}%`));
