@@ -1,6 +1,5 @@
 import { Suspense } from "react";
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import { getSession } from "@/lib/session";
 import { buttonVariants } from "@/components/ui/button";
 import {

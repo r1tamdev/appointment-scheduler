@@ -18,6 +18,7 @@ const signUpSchema = z.object({
 const signInSchema = z.object({
   email: z.string().email("Enter a valid email"),
   password: z.string().min(1, "Password is required"),
+  rememberMe: z.string().optional(),
 });
 
 function normalizePhone(raw: string): string | null {
@@ -50,8 +51,11 @@ export async function signInAction(_prev: FormState, formData: FormData): Promis
   const parsed = signInSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) return { error: parsed.error.issues[0].message };
 
+  const { email, password, rememberMe } = parsed.data;
   try {
-    await auth.api.signInEmail({ body: parsed.data });
+    await auth.api.signInEmail({
+      body:{ email, password, rememberMe: rememberMe === "on"},
+    })
   } catch {
     return { error: "Invalid email or password" };
   }

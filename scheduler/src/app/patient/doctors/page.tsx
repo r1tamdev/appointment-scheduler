@@ -41,13 +41,13 @@ export default async function FindDoctorsPage({
               <p className="text-sm">
                 {d.experienceYears ?? 0} yrs experience · ₹{Number(d.consultationFee ?? 0)}
               </p>
-              <Button render={<Link
-              href={`/patient/doctors/${d.doctorId}`}
-              className={buttonVariants({ size: "sm" })}
+              <Button
+              size="sm"
+              nativeButton={false}
+              render={<Link href={`/patient/doctors/${d.doctorId}`}/>}
               >
               View slots
-              </Link>}>
-            </Button>
+              </Button>
             </div>
           ))}
         </div>

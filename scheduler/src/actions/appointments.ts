@@ -9,6 +9,12 @@ import { appointments, availability, doctors, patients } from "@/db/schema";
 import { getSession, requireRole } from "@/lib/session";
 import { getOrCreateDoctor, getOrCreatePatient } from "@/lib/profiles";
 import { slotStartUtc } from "@/lib/time";
+import { after } from "next/server";
+import { dispatchInBackground } from "@/lib/notifications/dispatcher";
+import {
+  enqueueCancellationEmails,
+  enqueueRescheduleEmails,
+} from "@/lib/notifications/events";
 
 type FormState = { error: string } | null;
 
@@ -86,23 +92,23 @@ export async function cancelAppointmentAction(formData: FormData) {
     .where(eq(appointments.appointmentId, id));
 
   if (!row || row.status !== "BOOKED") return;
-  // Only the patient or the doctor of this appointment may cancel it.
   if (session.user.id !== row.patientUserId && session.user.id !== row.doctorUserId) return;
+
+  const cancelledBy = session.user.id === row.doctorUserId ? "DOCTOR" : "PATIENT";
 
   await db.transaction(async (tx) => {
     await tx
       .update(appointments)
-      .set({ status: "CANCELLED",
-        cancelledAt: new Date(),
-        cancelledBy: session.user.id === row.doctorUserId ? "DOCTOR" : "PATIENT",
-       })
+      .set({ status: "CANCELLED", cancelledAt: new Date(), cancelledBy })
       .where(eq(appointments.appointmentId, id));
     await tx
       .update(availability)
-      .set({ status: "AVAILABLE", })
+      .set({ status: "AVAILABLE" })
       .where(eq(availability.availabilityId, row.availabilityId));
+    await enqueueCancellationEmails(tx, id, cancelledBy);
   });
 
+  after(dispatchInBackground);
   revalidatePath("/patient");
   revalidatePath("/doctor");
 }
@@ -210,6 +216,10 @@ export async function rescheduleAppointmentAction(
         .where(eq(appointments.appointmentId, appointmentId));
 
       // Step 6: enqueue the "rescheduled" email and refresh reminders here.
+      await enqueueRescheduleEmails(tx, appointmentId, newAvailabilityId, {
+      slotDate: current.slotDate,
+      startTime: current.startTime,
+      });
     });
   } catch (e) {
     if (e instanceof Error && e.message in rescheduleErrors) {
@@ -217,7 +227,7 @@ export async function rescheduleAppointmentAction(
     }
     throw e;
   }
-
+  after(dispatchInBackground);
   revalidatePath("/patient");
   revalidatePath("/doctor");
   redirect("/patient");

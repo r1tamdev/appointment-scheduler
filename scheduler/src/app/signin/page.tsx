@@ -27,6 +27,10 @@ export default function SignInPage() {
               <Label htmlFor="password">Password</Label>
               <Input id="password" name="password" type="password" required />
             </div>
+            <label className="flex items-center gap-2 text-sm">
+            <input type="checkbox" name="rememberMe" />
+            Remember me on this device
+            </label>
             {state?.error && <p className="text-sm text-red-600">{state.error}</p>}
             <Button type="submit" className="w-full" disabled={pending}>
               {pending ? "Signing in..." : "Sign in"}

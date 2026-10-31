@@ -1,6 +1,7 @@
 import { and,eq } from "drizzle-orm";
 import { db } from "@/db";
 import { appointments, availability, payments } from "@/db/schema";
+import { enqueueBookingEmails } from "@/lib/notifications/events";
 
 export type ConfirmOutcome = "CONFIRMED" | "ALREADY_CONFIRMED" | "LATE_NEEDS_REFUND" | "NOT_FOUND";
 

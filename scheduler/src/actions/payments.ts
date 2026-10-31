@@ -11,6 +11,9 @@ import { getPaymentProvider } from "@/lib/payments";
 import { ConfirmPayment } from "@/lib/payments/confirm";
 import { holdExpiry, releaseExpiredHolds, releaseHold } from "@/lib/payments/holds";
 import { slotStartUtc } from "@/lib/time";
+import { after } from "next/server";
+import { dispatchInBackground } from "@/lib/notifications/dispatcher";
+import { enqueueBookingEmails } from "@/lib/notifications/events";
 
 export type StartBookingResult =
   | { error: string }
@@ -96,6 +99,8 @@ export async function startBookingAction(formData: FormData): Promise<StartBooki
         })
         .returning({ appointmentId: appointments.appointmentId });
 
+      if (free) await enqueueBookingEmails(tx, appt.appointmentId);
+
       return { appointmentId: appt.appointmentId, amountPaise, doctorName: doc?.name ?? "" };
     });
   } catch (e) {
@@ -106,9 +111,7 @@ export async function startBookingAction(formData: FormData): Promise<StartBooki
   // Free consultation: confirmed immediately.
   if (held.amountPaise === 0) {
     // Step 6: enqueue the booking email here.
-    revalidatePath("/patient");
-    revalidatePath("/doctor");
-    return { free: true };
+    after(dispatchInBackground);
   }
 
   // Phase 2: create the payment order. This is a network call, so it runs outside the transaction.
@@ -190,6 +193,7 @@ export async function verifyPaymentAction(
     providerPaymentId: d.razorpayPaymentId,
   });
 
+  after(dispatchInBackground);
   revalidatePath("/patient");
   revalidatePath("/doctor");
 
