@@ -1,0 +1,59 @@
+// Use DBML to define your database structure
+// Docs: https://dbml.dbdiagram.io/docs
+
+Table users{
+  user_id integer [primary key]
+  name varchar
+  email varchar [unique]
+  phone varchar [unique]
+  password_hash varchar
+  auth_provider varchar
+  role varchar [not null, note: 'DOCTOR OR PATIENT']
+  is_verified boolean [default: false]
+  created_at timestamp
+}
+
+Table patients{
+ patient_id integer [primary key]
+ user_id integer [not null, unique]
+ date_of_birth date
+ gender varchar
+ address varchar
+}
+
+Table doctors{
+  doctor_id integer [primary key]
+  user_id integer [not null, unique]
+  specialization varchar
+  experience_years integer
+  consultation_fee decimal
+  is_approved boolean
+}
+
+Table availability{
+  availability_id integer [primary key]
+  doctor_id integer [not null]
+  slot_date date [not null]
+  start_time time [not null]
+  end_time time [not null]
+  status varchar [note: 'AVAILABLE OR BOOKED']
+}
+
+Table appointments{
+  appointment_id integer [primary key]
+  patient_id integer [not null]
+  doctor_id integer [not null]
+  availability_id integer [not null, unique]
+  reason varchar
+  status varchar [note: 'BOOKED, CANCELLED OR COMPLETED']
+  booked_at timestamp
+}
+
+Ref: patients.user_id - users.user_id
+Ref: doctors.user_id - users.user_id
+
+Ref: availability.doctor_id > doctors.doctor_id
+
+Ref: appointments.patient_id > patients.patient_id
+Ref: appointments.doctor_id > doctors.doctor_id
+Ref: appointments.availability_id - availability.availability_id
