@@ -1,6 +1,7 @@
-import { and, asc, eq, gte, ilike, isNotNull, sql } from "drizzle-orm";
+import { and, asc, eq, gte, ilike, inArray, isNotNull, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { appointments, availability, doctors, patients, user } from "@/db/schema";
+import { releaseExpiredHolds } from "@/lib/payments/holds";
 
 export async function getDoctorAppointments(doctorId: number) {
   return db
@@ -18,7 +19,11 @@ export async function getDoctorAppointments(doctorId: number) {
     .innerJoin(availability, eq(appointments.availabilityId, availability.availabilityId))
     .innerJoin(patients, eq(appointments.patientId, patients.patientId))
     .innerJoin(user, eq(patients.userId, user.id))
-    .where(eq(appointments.doctorId, doctorId))
+    .where(
+      and(
+        eq(appointments.doctorId, doctorId),
+        inArray(appointments.status,["BOOKED","COMPLETED","CANCELLED"])
+      ))
     .orderBy(asc(availability.slotDate), asc(availability.startTime));
 }
 

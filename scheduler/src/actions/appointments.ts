@@ -12,10 +12,12 @@ import { slotStartUtc } from "@/lib/time";
 
 type FormState = { error: string } | null;
 
+/*
 const bookSchema = z.object({
   availabilityId: z.coerce.number().int().positive("Pick a time slot"),
   reason: z.string().max(300, "Reason is too long").optional(),
 });
+
 
 export async function bookAppointmentAction(
   _prev: FormState,
@@ -62,6 +64,7 @@ export async function bookAppointmentAction(
   revalidatePath("/doctor");
   redirect("/patient");
 }
+*/
 
 export async function cancelAppointmentAction(formData: FormData) {
   const session = await getSession();

@@ -43,7 +43,7 @@ export default async function DoctorDetailPage({
             No open slots right now. Please check back later.
           </p>
         ) : (
-          <BookingForm slots={options} />
+          <BookingForm slots={options} fee={Number(doctor.consultationFee ?? 0)} />
         )}
       </section>
     </div>

@@ -13,7 +13,7 @@ export default async function PatientDashboard() {
   const rows = await getPatientAppointments(patient.patientId);
 
   const upcoming = rows.filter((r) => r.status === "BOOKED");
-  const history = rows.filter((r) => r.status !== "BOOKED");
+  const history = rows.filter((r) => r.status === "COMPLETED" || r.status === "CANCELLED");
 
   return (
     <div className="space-y-8">
