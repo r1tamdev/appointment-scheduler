@@ -1,16 +1,16 @@
-import { and,eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { appointments, availability, payments } from "@/db/schema";
 import { enqueueBookingEmails } from "@/lib/notifications/events";
 
 export type ConfirmOutcome = "CONFIRMED" | "ALREADY_CONFIRMED" | "LATE_NEEDS_REFUND" | "NOT_FOUND";
 
-export async function ConfirmPayment(p:{
+export async function ConfirmPayment(p: {
   providerOrderId: string;
   providerPaymentId: string;
 }): Promise<ConfirmOutcome> {
   return db.transaction(async (tx) => {
-const [payment] = await tx
+    const [payment] = await tx
       .select()
       .from(payments)
       .where(eq(payments.providerOrderId, p.providerOrderId))
@@ -44,8 +44,10 @@ const [payment] = await tx
         .update(availability)
         .set({ status: "BOOKED" })
         .where(eq(availability.availabilityId, appt.availabilityId));
-        return "CONFIRMED";
+      await enqueueBookingEmails(tx, payment.appointmentId);
+      return "CONFIRMED";
     }
+
     if (appt.status === "EXPIRED") {
       const reclaimed = await tx
         .update(availability)
@@ -62,11 +64,12 @@ const [payment] = await tx
           .update(appointments)
           .set({ status: "BOOKED", holdExpiresAt: null, cancelledAt: null, cancelledBy: null })
           .where(eq(appointments.appointmentId, payment.appointmentId));
+        await enqueueBookingEmails(tx, payment.appointmentId);
         return "CONFIRMED";
       }
     }
 
-    
+    // Paid, but the appointment can't be honoured. Step 5 refunds these automatically.
     return "LATE_NEEDS_REFUND";
   });
 }

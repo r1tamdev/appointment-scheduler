@@ -9,7 +9,7 @@ const font = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "Appointment Scheduler",
+  title: "Schedula",
   description: "Book doctor appointments online",
 };
 

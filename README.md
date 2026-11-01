@@ -1,4 +1,4 @@
-# Appointment Scheduler
+# Schedula
 
 A doctor appointment booking application for patients and doctors. Doctors publish their availability, patients book a slot, and the booking appears on the doctor's dashboard.
 

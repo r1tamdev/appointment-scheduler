@@ -83,7 +83,7 @@ export function BookingForm({ slots, fee }: { slots: Slot[]; fee: number }) {
       order_id: result.orderId,
       amount: result.amount,
       currency: result.currency,
-      name: "Appointment Scheduler",
+      name: "Schedula",
       description: `Consultation with Dr. ${result.doctorName}`,
       prefill: { name: result.patientName, email: result.patientEmail },
       theme: { color: "#0d9488" },

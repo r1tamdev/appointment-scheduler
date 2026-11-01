@@ -110,10 +110,10 @@ export function renderNotification(type: NotificationType, payload: TemplatePayl
   const { subject, lines, cta } = content(type, payload);
   const url = `${appUrl()}${payload.portalPath}`;
 
-  const text = [...lines, `${cta}: ${url}`, "Appointment Scheduler"].join("\n\n");
+  const text = [...lines, `${cta}: ${url}`, "Schedula"].join("\n\n");
   const html = `<!doctype html><html><body style="margin:0;background:#f1f5f9;font-family:Arial,sans-serif;">
 <div style="max-width:520px;margin:24px auto;background:#ffffff;border-radius:12px;overflow:hidden;">
-  <div style="background:#0d9488;color:#ffffff;padding:16px 24px;font-size:18px;font-weight:bold;">Appointment Scheduler</div>
+  <div style="background:#0d9488;color:#ffffff;padding:16px 24px;font-size:18px;font-weight:bold;">Schedula</div>
   <div style="padding:24px;color:#0f172a;font-size:15px;line-height:1.6;">
     ${lines.map((l) => `<p style="margin:0 0 12px;">${esc(l)}</p>`).join("")}
     <p style="margin:24px 0 0;"><a href="${esc(url)}" style="background:#0d9488;color:#ffffff;padding:10px 18px;border-radius:8px;text-decoration:none;font-weight:bold;">${esc(cta)}</a></p>
