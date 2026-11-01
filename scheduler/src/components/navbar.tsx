@@ -4,6 +4,7 @@ import { CalendarCheck } from "lucide-react";
 import { getSession } from "@/lib/session";
 import { signOutAction } from "@/actions/auth";
 import { Button, buttonVariants } from "@/components/ui/button";
+import Image from "next/image";
 
 const APP_NAME = "Schedula";
 
@@ -57,9 +58,15 @@ async function NavActions() {
 export function Navbar() {
   return (
     <header className="sticky top-0 z-20 border-b bg-white/80 backdrop-blur">
-      <nav className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-2 px-4 py-3">
-        <Link href="/" className="flex items-center gap-2 font-semibold">
-          <CalendarCheck className="h-5 w-5 text-teal-600" />
+      <nav className="flex w-full flex-wrap items-center justify-between gap-2 px-6 py-3 lg:px-12">
+        <Link href="/" className="flex items-center gap-3 text-3xl font-semibold text-teal-600">
+          <Image 
+          src="/doctor.png"
+          alt="Schedula"
+          width={48}
+          height={48}
+          className="h-12 w-12 rounded-full"
+          />
           {APP_NAME}
         </Link>
         <Suspense fallback={null}>

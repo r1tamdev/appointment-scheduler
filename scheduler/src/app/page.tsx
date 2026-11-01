@@ -9,6 +9,8 @@ import {
   Stethoscope,
   UserPlus,
 } from "lucide-react";
+import Image from "next/image";
+import { cn } from "@/lib/utils";
 
 const features = [
   { icon: Stethoscope, title: "Find the right doctor", text: "Search by specialization.", color: "bg-teal-100 text-teal-700" },
@@ -34,12 +36,24 @@ async function HeroButtons() {
   }
   return (
     <>
-      <Link href="/signup" className={buttonVariants({ size: "lg", className: "text-base font-semibold" })}>
-        Book an appointment
-      </Link>
-      <Link href="/signin" className={buttonVariants({ size: "lg", variant: "outline", className: "text-base font-semibold" })}>
-        Visit Portal
-      </Link>
+    <Link
+  href="/signup"
+  className={cn(
+    buttonVariants({ size: "lg" }),
+    "h-14 rounded-xl px-8 text-lg font-semibold sm:h-15 sm:rounded-2xl sm:px-8 sm:text-2xl"
+  )}
+>
+  Book an appointment
+</Link>
+<Link
+  href="/signin"
+  className={cn(
+    buttonVariants({ size: "lg", variant: "outline" }),
+    "h-14 rounded-xl px-8 text-lg font-semibold sm:h-15 sm:rounded-2xl sm:px-8 sm:text-2xl"
+  )}
+>
+  Visit Portal
+</Link>
     </>
   );
 }
@@ -65,7 +79,7 @@ export default function Home() {
           <span className="inline-block rounded-full bg-teal-100 px-3 py-1 text-xs font-medium text-teal-800">
             Online doctor appointments
           </span>
-          <h1 className="mt-4 text-4xl font-bold tracking-tight sm:text-6xl">
+          <h1 className="mt-4 text-5xl font-bold tracking-tight sm:text-7xl">
             Book your doctor in <span className="text-teal-600">minutes</span>
           </h1>
           <p className="mx-auto mt-4 max-w-xl text-lg text-slate-600">
@@ -77,6 +91,14 @@ export default function Home() {
             </Suspense>
           </div>
         </div>
+        <Image 
+          src="/doctor.png"
+          alt="Doctor"
+          width={500}
+          height={500}
+          priority
+          className="mx-auto h-auto max-w-md rounded-2xl"
+          />
       </section>
 
       {/* Features */}
