@@ -1,7 +1,9 @@
-import { and, asc, eq, gte, ilike, inArray, isNotNull, sql } from "drizzle-orm";
+import { and, asc, eq, gte, ilike, inArray, isNotNull, sql, lt } from "drizzle-orm";
 import { db } from "@/db";
 import { appointments, availability, doctors, patients, user } from "@/db/schema";
 import { releaseExpiredHolds } from "@/lib/payments/holds";
+import {ensureUpcomingAvailability,} from "@/lib/availability/generate";
+import { slotStartUtc } from "@/lib/time";
 
 export async function getDoctorAppointments(doctorId: number) {
   return db
@@ -67,9 +69,38 @@ export async function getPatientAppointment(appointmentId: number, userId: strin
   return row;
 }
 
+export async function getDoctorSpecializations() {
+  const specialization = sql<string>`trim(${doctors.specialization})`;
+
+  const rows = await db
+    .selectDistinct({
+      specialization,
+    })
+    .from(doctors)
+    .where(
+      and(
+        eq(doctors.isApproved, true),
+        isNotNull(doctors.specialization),
+        sql`trim(${doctors.specialization}) <> ''`
+      )
+    )
+    .orderBy(asc(sql`lower(trim(${doctors.specialization}))`));
+
+  return rows.map((row) => row.specialization);
+}
+
 export async function listDoctors(specialization?: string) {
-  const conditions = [eq(doctors.isApproved, true), isNotNull(doctors.specialization)];
-  if (specialization) conditions.push(ilike(doctors.specialization, `%${specialization}%`));
+  const conditions = [
+    eq(doctors.isApproved, true),
+    isNotNull(doctors.specialization),
+  ];
+
+  if (specialization) {
+    conditions.push(
+      sql`lower(trim(${doctors.specialization})) = lower(trim(${specialization}))`
+    );
+  }
+
   return db
     .select({
       doctorId: doctors.doctorId,
@@ -100,20 +131,29 @@ export async function getDoctorById(doctorId: number) {
 }
 
 export async function getOpenSlots(doctorId: number) {
-  return db
+  
+  await releaseExpiredHolds();
+
+  await ensureUpcomingAvailability(doctorId);
+
+  const rows = await db
     .select()
     .from(availability)
     .where(
       and(
         eq(availability.doctorId, doctorId),
-        eq(availability.status, "AVAILABLE"),
+        lt(availability.bookedCount, availability.capacity),
         gte(availability.slotDate, sql`CURRENT_DATE`)
       )
     )
     .orderBy(asc(availability.slotDate), asc(availability.startTime));
+
+    return rows.filter((slot) => slotStartUtc(slot.slotDate, slot.startTime).getTime()>Date.now());
 }
 
 export async function getDoctorSlots(doctorId: number) {
+  await ensureUpcomingAvailability(doctorId);
+
   return db
     .select()
     .from(availability)

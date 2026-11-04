@@ -1,6 +1,7 @@
 import { and, eq, inArray, lt } from "drizzle-orm";
 import { db } from "@/db";
 import { appointments, availability, payments } from "@/db/schema";
+import { releaseCapacity } from "@/lib/availability/capacity";
 
 export const HOLD_MINUTES = 10;
 
@@ -27,10 +28,11 @@ export async function releaseHold(appointmentId: number, cancelledBy: "PATIENT" 
       .update(appointments)
       .set({ status: "EXPIRED", cancelledAt: new Date(), cancelledBy })
       .where(eq(appointments.appointmentId, appointmentId));
-    await tx
-      .update(availability)
-      .set({ status: "AVAILABLE" })
-      .where(eq(availability.availabilityId, appt.availabilityId));
+
+       await releaseCapacity(
+      tx,
+      appt.availabilityId
+    );
     await tx
       .update(payments)
       .set({ status: "EXPIRED" })
@@ -50,10 +52,12 @@ export async function releaseExpiredHolds() {
       });
     if (expired.length === 0) return;
 
-    await tx
-      .update(availability)
-      .set({ status: "AVAILABLE" })
-      .where(inArray(availability.availabilityId, expired.map((e) => e.availabilityId)));
+    for (const item of expired) {
+      await releaseCapacity(
+        tx,
+        item.availabilityId
+      );
+    }
     await tx
       .update(payments)
       .set({ status: "EXPIRED" })

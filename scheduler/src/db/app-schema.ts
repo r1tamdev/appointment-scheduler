@@ -40,16 +40,118 @@ export const doctors = pgTable("doctors", {
   isApproved: boolean("is_approved").notNull().default(true),
 });
 
-export const availability = pgTable("availability", {
-  availabilityId: serial("availability_id").primaryKey(),
-  doctorId: integer("doctor_id")
-    .notNull()
-    .references(() => doctors.doctorId, { onDelete: "cascade" }),
-  slotDate: date("slot_date").notNull(),
-  startTime: time("start_time").notNull(),
-  endTime: time("end_time").notNull(),
-  status: varchar("status", { length: 20 }).notNull().default("AVAILABLE"),
-});
+export const availabilityRules = pgTable(
+  "availability_rules",
+  {
+    ruleId: serial("rule_id").primaryKey(),
+
+    doctorId: integer("doctor_id")
+      .notNull()
+      .references(() => doctors.doctorId, { onDelete: "cascade" }),
+
+    schedulingType: varchar("scheduling_type", {
+      length: 10,
+    }).notNull(),
+
+    recurrenceType: varchar("recurrence_type", {
+      length: 12,
+    }).notNull(),
+
+    specificDate: date("specific_date"),
+    weekdays: integer("weekdays").array(),
+    selectedDates: date("selected_dates").array(),
+
+    startTime: time("start_time").notNull(),
+    endTime: time("end_time").notNull(),
+
+    intervalMinutes: integer("interval_minutes").notNull(),
+
+    capacity: integer("capacity").notNull().default(1),
+
+    isActive: boolean("is_active").notNull().default(true),
+
+    createdAt: timestamp("created_at", {
+      withTimezone: true,
+    }).notNull().defaultNow(),
+  },
+  (t) => [
+    check(
+      "availability_rules_type_valid",
+      sql`${t.schedulingType} IN ('WAVE', 'STREAM')`
+    ),
+    check(
+      "availability_rules_recurrence_valid",
+      sql`${t.recurrenceType} IN ('ONCE', 'WEEKLY', 'DATES')`
+    ),
+    check(
+      "availability_rules_time_order",
+      sql`${t.endTime} > ${t.startTime}`
+    ),
+    check(
+      "availability_rules_capacity_positive",
+      sql`${t.capacity} > 0`
+    ),
+    check(
+      "availability_rules_interval_positive",
+      sql`${t.intervalMinutes} > 0`
+    ),
+  ]
+);
+
+export const availability = pgTable(
+  "availability",
+  {
+    availabilityId: serial("availability_id").primaryKey(),
+
+    doctorId: integer("doctor_id")
+      .notNull()
+      .references(() => doctors.doctorId, { onDelete: "cascade" }),
+
+    ruleId: integer("rule_id")
+      .references(() => availabilityRules.ruleId, {
+        onDelete: "set null",
+      }),
+
+    schedulingType: varchar("scheduling_type", {
+      length: 10,
+    }).notNull().default("WAVE"),
+
+    capacity: integer("capacity").notNull().default(1),
+
+    bookedCount: integer("booked_count").notNull().default(0),
+
+    slotDate: date("slot_date").notNull(),
+
+    startTime: time("start_time").notNull(),
+
+    endTime: time("end_time").notNull(),
+
+    status: varchar("status", {
+      length: 20,
+    }).notNull().default("AVAILABLE"),
+  },
+  (t) => [
+    check(
+      "availability_type_valid",
+      sql`${t.schedulingType} IN ('WAVE', 'STREAM')`
+    ),
+    check(
+      "availability_capacity_positive",
+      sql`${t.capacity} > 0`
+    ),
+    check(
+      "availability_booked_count_nonnegative",
+      sql`${t.bookedCount} >= 0`
+    ),
+    check(
+      "availability_booked_within_capacity",
+      sql`${t.bookedCount} <= ${t.capacity}`
+    ),
+    uniqueIndex("availability_doctor_date_start_unique")
+      .on(t.doctorId, t.slotDate, t.startTime),
+  ]
+);
+
 
 export const appointments = pgTable(
   "appointments",
