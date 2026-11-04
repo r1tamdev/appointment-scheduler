@@ -121,7 +121,6 @@ export async function signInAction(
 }
 
 
-
 export async function requestPasswordResetAction(
   _prev: ResetRequestState,
   formData: FormData
@@ -138,8 +137,14 @@ export async function requestPasswordResetAction(
     };
   }
 
-  const appUrl =
-    process.env.APP_URL || "http://localhost:3000";
+  const appUrl = process.env.BETTER_AUTH_URL;
+
+  if (!appUrl) {
+    console.error("BETTER_AUTH_URL is not configured");
+    return {
+      error: "Password reset is temporarily unavailable.",
+    };
+  }
 
   try {
     await auth.api.requestPasswordReset({
@@ -152,13 +157,11 @@ export async function requestPasswordResetAction(
     console.error("Password reset request failed:", error);
   }
 
-  // Generic response prevents account enumeration.
   return {
     success:
       "If an account exists for that email, a password reset link has been sent. Please check your inbox and spam folder.",
   };
 }
-
 
 
 export async function resetPasswordAction(
