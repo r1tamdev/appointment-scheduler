@@ -70,11 +70,9 @@ export async function getPatientAppointment(appointmentId: number, userId: strin
 }
 
 export async function getDoctorSpecializations() {
-  const specialization = sql<string>`trim(${doctors.specialization})`;
-
   const rows = await db
     .selectDistinct({
-      specialization,
+      specialization: sql<string>`trim(${doctors.specialization})`,
     })
     .from(doctors)
     .where(
@@ -84,7 +82,9 @@ export async function getDoctorSpecializations() {
         sql`trim(${doctors.specialization}) <> ''`
       )
     )
-    .orderBy(asc(sql`lower(trim(${doctors.specialization}))`));
+    .orderBy(
+      asc(sql`trim(${doctors.specialization})`)
+    );
 
   return rows.map((row) => row.specialization);
 }

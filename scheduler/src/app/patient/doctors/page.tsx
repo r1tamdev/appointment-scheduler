@@ -31,11 +31,11 @@ export default async function FindDoctorsPage({
         </h1>
 
         <p className="text-sm text-muted-foreground">
-          Select a specialisation to find the right doctor.
+          Select a specialization to find the right doctor.
         </p>
       </div>
 
-      {/* Specialisation Filter */}
+      {/* Specialization Filter */}
       <form
         action="/patient/doctors"
         method="GET"
@@ -47,7 +47,7 @@ export default async function FindDoctorsPage({
           className="h-9 w-full rounded-lg border border-input bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
           <option value="">
-            All Specialisations
+            Choose an option
           </option>
 
           {specializations.map((specialization) => (
@@ -68,7 +68,7 @@ export default async function FindDoctorsPage({
       {/* Selected Filter */}
       {selectedSpecialization && (
         <p className="text-sm text-muted-foreground">
-          Showing doctors specialising in{" "}
+          Showing doctors in{" "}
           <span className="font-medium text-foreground">
             {selectedSpecialization}
           </span>
