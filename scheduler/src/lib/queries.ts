@@ -143,7 +143,8 @@ export async function getOpenSlots(doctorId: number) {
       and(
         eq(availability.doctorId, doctorId),
         lt(availability.bookedCount, availability.capacity),
-        gte(availability.slotDate, sql`CURRENT_DATE`)
+        gte(availability.slotDate, sql`CURRENT_DATE`),
+        ne(availability.status, "CANCELLED")
       )
     )
     .orderBy(asc(availability.slotDate), asc(availability.startTime));

@@ -23,10 +23,8 @@ export async function reserveCapacity(
     .where(
       and(
         eq(availability.availabilityId, availabilityId),
-        lt(
-          availability.bookedCount,
-          availability.capacity
-        )
+        eq(availability.status, "AVAILABLE"),
+        lt(availability.bookedCount, availability.capacity)
       )
     )
     .returning({

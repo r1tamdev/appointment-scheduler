@@ -5,6 +5,7 @@ import {
   listDoctors,
 } from "@/lib/queries";
 import { Button } from "@/components/ui/button";
+import { SpecializationFilter } from "./specialization-filter";
 
 export default async function FindDoctorsPage({
   searchParams,
@@ -36,34 +37,10 @@ export default async function FindDoctorsPage({
       </div>
 
       {/* Specialization Filter */}
-      <form
-        action="/patient/doctors"
-        method="GET"
-        className="flex max-w-md flex-col gap-3 sm:flex-row"
-      >
-        <select
-          name="specialization"
-          defaultValue={selectedSpecialization ?? ""}
-          className="h-9 w-full rounded-lg border border-input bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
-        >
-          <option value="">
-            Choose an option
-          </option>
-
-          {specializations.map((specialization) => (
-            <option
-              key={specialization}
-              value={specialization}
-            >
-              {specialization}
-            </option>
-          ))}
-        </select>
-
-        <Button type="submit">
-          Apply Filter
-        </Button>
-      </form>
+      <SpecializationFilter
+      specializations={specializations}
+      selectedSpecialization={selectedSpecialization}
+      />
 
       {/* Selected Filter */}
       {selectedSpecialization && (
