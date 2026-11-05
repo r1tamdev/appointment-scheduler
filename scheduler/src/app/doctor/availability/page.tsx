@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { formatSlotDate, formatTime } from "@/lib/format";
 import { AddSlotForm } from "./add-slot-form";
 import { clinicToday } from "@/lib/time";
+import { DeleteSlotButton } from "@/components/delete-slot-button";
 
 export default async function AvailabilityPage() {
   const session = await requireRole("DOCTOR");
@@ -83,25 +84,15 @@ return (
                   </td>
 
                   <td className="p-3">
-                    {s.status === "AVAILABLE" &&
-                      s.bookedCount === 0 &&
-                      !s.ruleId && (
-                        <form action={deleteSlotAction}>
-                          <input
-                            type="hidden"
-                            name="availabilityId"
-                            value={s.availabilityId}
-                          />
-
-                          <Button
-                            type="submit"
-                            size="sm"
-                            variant="outline"
-                          >
-                            Delete
-                          </Button>
-                        </form>
-                      )}
+                  {s.status === "AVAILABLE" ? (
+                  <DeleteSlotButton
+                  availabilityId={s.availabilityId}
+                  />
+                  ) : (
+                  <span className="text-xs text-muted-foreground">
+                  Not deletable
+                  </span>
+                  )}
                   </td>
                 </tr>
               ))}

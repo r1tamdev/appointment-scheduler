@@ -4,7 +4,7 @@ import { z } from "zod";
 import { and, eq, gt, lt, isNull } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { db } from "@/db";
-import { availability, availabilityRules } from "@/db/schema";
+import { availability, availabilityRules, appointments } from "@/db/schema";
 import { requireRole } from "@/lib/session";
 import { getOrCreateDoctor } from "@/lib/profiles";
 import { ensureUpcomingAvailability } from "@/lib/availability/generate";
@@ -277,32 +277,63 @@ export async function createScheduleAction(
   };
 }
 
-export async function deleteSlotAction(
-  formData: FormData
-) {
+export async function deleteSlotAction(formData: FormData) {
   const session = await requireRole("DOCTOR");
 
-  const id = Number(
-    formData.get("availabilityId")
-  );
+  const id = Number(formData.get("availabilityId"));
 
-  if (!Number.isInteger(id)) return;
+  if (!Number.isInteger(id) || id <= 0) return;
 
-  const doctor = await getOrCreateDoctor(
-    session.user.id
-  );
+  const doctor = await getOrCreateDoctor(session.user.id);
 
-  await db
-    .delete(availability)
-    .where(
-      and(
-        eq(availability.availabilityId, id),
-        eq(availability.doctorId, doctor.doctorId),
-        eq(availability.status, "AVAILABLE"),
-        eq(availability.bookedCount, 0),
-        isNull(availability.ruleId)
+  await db.transaction(async (tx) => {
+    // Lock the slot to prevent concurrent booking/deletion.
+    const [slot] = await tx
+      .select({
+        availabilityId: availability.availabilityId,
+        status: availability.status,
+      })
+      .from(availability)
+      .where(
+        and(
+          eq(availability.availabilityId, id),
+          eq(availability.doctorId, doctor.doctorId)
+        )
       )
-    );
+      .for("update");
+
+    if (!slot || slot.status !== "AVAILABLE") {
+      throw new Error("This slot is not available for deletion.");
+    }
+
+    // Check whether an active appointment exists.
+    const [activeAppointment] = await tx
+      .select({
+        appointmentId: appointments.appointmentId,
+      })
+      .from(appointments)
+      .where(
+        and(
+          eq(appointments.availabilityId, id),
+          eq(appointments.status, "BOOKED")
+        )
+      )
+      .limit(1);
+
+    if (activeAppointment) {
+      throw new Error(
+        "This slot has an active appointment and cannot be deleted."
+      );
+    }
+
+    // Soft delete: preserve appointment history.
+    await tx
+      .update(availability)
+      .set({ status: "CANCELLED" })
+      .where(eq(availability.availabilityId, id));
+  });
 
   revalidatePath("/doctor/availability");
+  revalidatePath("/doctor");
+  revalidatePath("/patient");
 }

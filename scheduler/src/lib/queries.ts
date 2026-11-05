@@ -1,4 +1,4 @@
-import { and, asc, eq, gte, ilike, inArray, isNotNull, sql, lt } from "drizzle-orm";
+import { and, asc, ne, eq, gte, ilike, inArray, isNotNull, sql, lt } from "drizzle-orm";
 import { db } from "@/db";
 import { appointments, availability, doctors, patients, user } from "@/db/schema";
 import { releaseExpiredHolds } from "@/lib/payments/holds";
@@ -157,6 +157,11 @@ export async function getDoctorSlots(doctorId: number) {
   return db
     .select()
     .from(availability)
-    .where(and(eq(availability.doctorId, doctorId), gte(availability.slotDate, sql`CURRENT_DATE`)))
+    .where(and
+      (eq(availability.doctorId, doctorId), 
+      gte(availability.slotDate, sql`CURRENT_DATE`),
+      ne(availability.status,"CANCELLED")
+    )
+  )
     .orderBy(asc(availability.slotDate), asc(availability.startTime));
 }
